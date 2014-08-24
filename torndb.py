@@ -111,6 +111,18 @@ class Connection(object):
             self._db.close()
             self._db = None
 
+    def begin(self):
+        """Begin transaction."""
+        self._db.begin()
+    
+    def commit(self):
+        """Commit transaction."""
+        self._db.commit()
+
+    def rollback(self):
+        """Rollback transaction."""
+        self._db.rollback()
+
     def reconnect(self):
         """Closes the existing database connection and re-opens it."""
         self.close()
