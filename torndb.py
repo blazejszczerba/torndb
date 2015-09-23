@@ -24,7 +24,6 @@ as torndb.
 from __future__ import absolute_import, division, with_statement
 
 import copy
-import itertools
 import logging
 import os
 import time
@@ -64,17 +63,21 @@ class Connection(object):
     The sql_mode parameter is set by default to "traditional", which "gives an error instead of a warning"
     (http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html). However, it can be set to
     any other mode including blank (None) thereby explicitly clearing the SQL mode.
+
+    Arguments read_timeout and write_timeout can be passed using kwargs, if
+    MySQLdb version >= 1.2.5 and MySQL version > 5.1.12.
     """
     def __init__(self, host, database, user=None, password=None,
-                 max_idle_time=7 * 3600, connect_timeout=0, 
-                 time_zone="+0:00", charset = "utf8", sql_mode="TRADITIONAL"):
+                 max_idle_time=7 * 3600, connect_timeout=0,
+                 time_zone="+0:00", charset = "utf8", sql_mode="TRADITIONAL",
+                 **kwargs):
         self.host = host
         self.database = database
         self.max_idle_time = float(max_idle_time)
 
         args = dict(conv=CONVERSIONS, use_unicode=True, charset=charset,
                     db=database, init_command=('SET time_zone = "%s"' % time_zone),
-                    connect_timeout=connect_timeout, sql_mode=sql_mode)
+                    connect_timeout=connect_timeout, sql_mode=sql_mode, **kwargs)
         if user is not None:
             args["user"] = user
         if password is not None:
@@ -147,7 +150,7 @@ class Connection(object):
         try:
             self._execute(cursor, query, parameters, kwparameters)
             column_names = [d[0] for d in cursor.description]
-            return [Row(itertools.izip(column_names, row)) for row in cursor]
+            return [Row(zip(column_names, row)) for row in cursor]
         finally:
             cursor.close()
 
